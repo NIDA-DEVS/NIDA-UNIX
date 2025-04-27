@@ -3,6 +3,7 @@ requests
 langchain
 langchain-community
 langchain-core
+langchain-ollama
 langgraph>=0.0.3
 chromadb
 tiktoken

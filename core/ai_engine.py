@@ -1,21 +1,29 @@
-import requests
+from langchain_core.messages import HumanMessage
+from core.command_graph import create_command_graph
 
-OLLAMA_API_URL = "http://localhost:11434/api/generate"
+class CommandProcessor:
+    def __init__(self, model_name: str = "llama2"):
+        self.graph = create_command_graph(model_name)
+        self.context = {}
+    
+    def generate_command(self, prompt: str) -> str:
+        config = {
+            "messages": [HumanMessage(content=prompt)],  
+            "command": "",
+            "status": "",
+            "context": self.context  
+        }
+        
+        result = self.graph.invoke(config)
+        if result["status"] == "completed":
+            self.context = result.get("context", {})
+            return result["command"]
+        return f"echo 'Error: Invalid command'"
+
+_processor = None
 
 def generate_command(prompt: str, model: str = "llama2") -> str:
-    try:
-        payload = {
-            "model": model,
-            "prompt": f"You are a helpful Linux assistant. Convert this request into a bash command only. Do not add explanations.\nRequest: {prompt}\nCommand:",
-            "stream": False
-        }
-        response = requests.post(OLLAMA_API_URL, json=payload)
-
-        if response.status_code == 200:
-            result = response.json()
-            command = result.get("response", "").strip()
-            return command
-        else:
-            return "echo 'Failed to generate command'"
-    except Exception as e:
-        return f"echo 'Error: {e}'"
+    global _processor
+    if _processor is None:
+        _processor = CommandProcessor(model)
+    return _processor.generate_command(prompt)
