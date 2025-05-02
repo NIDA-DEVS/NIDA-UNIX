@@ -1,0 +1,9 @@
+PyQt5
+requests
+langchain
+langchain-community
+langchain-core
+langgraph>=0.0.3
+chromadb
+tiktoken
+pydantic>=2.0.0
