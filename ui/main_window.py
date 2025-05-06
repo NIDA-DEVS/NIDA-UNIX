@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QTextEdit, QPushButton, QMessageBox
-from core.command_handler import execute_command
+from core.command_handler import create_command_executor
 from core.logger import log_action
 from core.command_thread import CommandThread
 from core.overlay_widget import OverlayWidget
+from PyQt5.QtWidgets import (QInputDialog, QLineEdit, QMessageBox)
 
 class MainWindow(QWidget):
     def __init__(self, config: dict):
@@ -14,25 +15,29 @@ class MainWindow(QWidget):
         self.layout = QVBoxLayout()
         self.label = QLabel("Enter instruction:")
         self.input_box = QTextEdit()
-
-        self.output_box = QTextEdit()
-        self.output_box.setReadOnly(True)
-
         self.submit_button = QPushButton("Generate & Execute")
         self.submit_button.clicked.connect(self.process_command)
-
-        self.overlay = OverlayWidget()
 
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.input_box)
         self.layout.addWidget(self.submit_button)
-        self.layout.addWidget(QLabel("Logs:"))
+
+        self.output_box = QTextEdit()
+        self.output_box.setReadOnly(True)
+        self.layout.addWidget(QLabel("Command Output:"))
         self.layout.addWidget(self.output_box)
+
+        self.log_view = QTextEdit()
+        self.log_view.setReadOnly(True)
+        self.layout.addWidget(QLabel("Logs:"))
+        self.layout.addWidget(self.log_view)
+
+        self.overlay = OverlayWidget()
 
         self.setLayout(self.layout)
 
     def log(self, message):
-        self.output_box.append(message)
+        self.log_view.append(message)
 
     def on_command_done(self, instruction, command):
         self.overlay.hide() 
@@ -49,23 +54,68 @@ class MainWindow(QWidget):
             self.output_box.setText("Operation cancelled.")
 
     def execute_command(self, instruction, command):
-        """Execute the command after confirmation."""
         try:
             self.log("⚙️ Executing command...")
+            
+            self.command_executor = create_command_executor(command)
+            self.command_executor.output_signal.connect(self.update_output)
+            self.command_executor.prompt_signal.connect(self.handle_prompt)
+            self.command_executor.finished_signal.connect(
+                lambda output: self.handle_command_finished(instruction, command, output)
+            )
+            self.command_executor.start()
 
-            output = execute_command(command)
-            log_action(instruction, command, output)
-
-            if output:
-                self.log(f"✅ Execution Result: {output}")
-                self.output_box.setText(output)
-            else:
-                self.log(f"✅ Command Executed Successfully.")
-                self.output_box.setText("Command Executed Successfully.")
         except Exception as e:
             self.log(f"❌ Error executing command: {e}")
-            self.output_box.setText("Error executing the command.")
+            self.output_box.setText(f"Error executing command: {e}")
 
+    def update_output(self, text):
+        self.output_box.append(text)
+
+
+
+    def handle_prompt(self, prompt_info):
+        if prompt_info.type == "password":
+            password, ok = QInputDialog.getText(
+                self, 
+                "Password Required",
+                prompt_info.message,
+                QLineEdit.Password
+            )
+            if ok:
+                self.command_executor.send_response(password)
+            else:
+                self.command_executor.send_response("")
+
+        elif prompt_info.type == "yesno":
+            reply, ok = QInputDialog.getItem(
+                self,
+                "Confirmation Required",
+                prompt_info.message,
+                prompt_info.options,
+                editable=False
+            )
+            if ok:
+                self.command_executor.send_response(reply)
+            else:
+                self.command_executor.send_response("no")
+
+
+    def handle_command_finished(self, instruction, command, output):
+        """Handle command completion"""
+        self.log("✅ Command executed successfully")
+        
+        if output and output.strip():
+            self.log(f"Output:\n{output}")
+            self.output_box.setText(output)
+            log_action(instruction, command, output)
+        else:
+            message = "Command executed successfully (no output)"
+            self.log(message)
+            self.output_box.setText(message)
+            log_action(instruction, command, "No output")
+        
+        self.overlay.hide()
 
     def on_command_error(self, error_message):
         self.overlay.hide()  

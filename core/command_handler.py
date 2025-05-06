@@ -1,8 +1,4 @@
-import subprocess
+from core.interactive_command import InteractiveCommandThread
 
-def execute_command(command: str) -> str:
-    try:
-        result = subprocess.run(command, shell=True, capture_output=True, text=True)
-        return result.stdout if result.stdout else result.stderr
-    except Exception as e:
-        return str(e)
+def create_command_executor(command: str) -> InteractiveCommandThread:
+    return InteractiveCommandThread(command)
