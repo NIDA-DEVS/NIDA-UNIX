@@ -1,43 +1,123 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QTextEdit, QPushButton, QMessageBox
-from core.command_handler import create_command_executor
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QLabel, QTextEdit, QPushButton, 
+                            QMessageBox, QInputDialog, QLineEdit, QFrame)
 from core.logger import log_action
 from core.command_thread import CommandThread
 from core.overlay_widget import OverlayWidget
-from PyQt5.QtWidgets import (QInputDialog, QLineEdit, QMessageBox)
+from core.command_handler import create_command_executor
+from PyQt5.QtCore import QThread, pyqtSignal, Qt, QTimer
+from PyQt5.QtWidgets import QApplication 
+
 
 class MainWindow(QWidget):
     def __init__(self, config: dict):
         super().__init__()
         self.config = config
         self.setWindowTitle("NIDA For your service")
-        self.setGeometry(200, 200, 600, 400)
+        self.setGeometry(200, 200, 800, 600)
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #2d2d2d;
+                color: #ffffff;
+            }
+            QLabel {
+                color: #ffffff;
+                font-size: 14px;
+            }
+            QTextEdit, QLineEdit {
+                background-color: #3d3d3d;
+                color: #ffffff;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 8px;
+                font-family: 'Consolas', monospace;
+            }
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 10px;
+                font-size: 14px;
+                font-weight: bold;
+                min-width: 150px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QFrame {
+                border: 1px solid #444;
+                border-radius: 4px;
+            }
+            QMessageBox {
+                background-color: #2d2d2d;
+            }
+            QMessageBox QLabel {
+                color: #ffffff;
+            }
+        """)
 
         self.layout = QVBoxLayout()
-        self.label = QLabel("Enter instruction:")
+        self.layout.setContentsMargins(20, 20, 20, 20)
+        self.layout.setSpacing(15)
+
+        header = QLabel("NIDA - Your AI UNIX Assistant")
+        header.setStyleSheet("font-size: 20px; font-weight: bold; color: #4CAF50;")
+        header.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(header)
+
+        instruction_frame = QFrame()
+        instruction_frame.setStyleSheet("padding: 10px;")
+        instruction_layout = QVBoxLayout()
+        instruction_layout.addWidget(QLabel("Enter instruction:"))
         self.input_box = QTextEdit()
+        self.input_box.setPlaceholderText("Type your Linux command instruction here...")
+        instruction_layout.addWidget(self.input_box)
+        instruction_frame.setLayout(instruction_layout)
+        self.layout.addWidget(instruction_frame)
+
         self.submit_button = QPushButton("Generate & Execute")
         self.submit_button.clicked.connect(self.process_command)
+        self.submit_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                font-weight: bold;
+                padding: 12px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        self.layout.addWidget(self.submit_button, 0, Qt.AlignCenter)
 
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.input_box)
-        self.layout.addWidget(self.submit_button)
-
+        output_frame = QFrame()
+        output_frame.setStyleSheet("padding: 10px;")
+        output_layout = QVBoxLayout()
+        output_layout.addWidget(QLabel("Command Output:"))
         self.output_box = QTextEdit()
         self.output_box.setReadOnly(True)
-        self.layout.addWidget(QLabel("Command Output:"))
-        self.layout.addWidget(self.output_box)
+        output_layout.addWidget(self.output_box)
+        output_frame.setLayout(output_layout)
+        self.layout.addWidget(output_frame, 1)
 
+        log_frame = QFrame()
+        log_frame.setStyleSheet("padding: 10px;")
+        log_layout = QVBoxLayout()
+        log_layout.addWidget(QLabel("Logs:"))
         self.log_view = QTextEdit()
         self.log_view.setReadOnly(True)
-        self.layout.addWidget(QLabel("Logs:"))
-        self.layout.addWidget(self.log_view)
+        log_layout.addWidget(self.log_view)
+        log_frame.setLayout(log_layout)
+        self.layout.addWidget(log_frame, 1)
 
         self.overlay = OverlayWidget()
-
         self.setLayout(self.layout)
 
     def log(self, message):
         self.log_view.append(message)
+        self.log_view.verticalScrollBar().setValue(
+            self.log_view.verticalScrollBar().maximum()
+        )
+        QApplication.processEvents()
 
     def on_command_done(self, instruction, command):
         self.overlay.hide() 
@@ -72,8 +152,6 @@ class MainWindow(QWidget):
     def update_output(self, text):
         self.output_box.append(text)
 
-
-
     def handle_prompt(self, prompt_info):
         if prompt_info.type == "password":
             password, ok = QInputDialog.getText(
@@ -99,7 +177,6 @@ class MainWindow(QWidget):
                 self.command_executor.send_response(reply)
             else:
                 self.command_executor.send_response("no")
-
 
     def handle_command_finished(self, instruction, command, output):
         """Handle command completion"""
