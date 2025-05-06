@@ -5,9 +5,9 @@ from core.command_thread import CommandThread
 from core.overlay_widget import OverlayWidget
 
 class MainWindow(QWidget):
-    def __init__(self, model_name):
+    def __init__(self, config: dict):
         super().__init__()
-        self.model = model_name
+        self.config = config
         self.setWindowTitle("NIDA For your service")
         self.setGeometry(200, 200, 600, 400)
 
@@ -85,7 +85,7 @@ class MainWindow(QWidget):
 
         self.log("Generating command from AI...")
 
-        self.command_thread = CommandThread(instruction, self.model)
+        self.command_thread = CommandThread(instruction, self.config)
         self.command_thread.result_ready.connect(self.on_command_done)
         self.command_thread.error_signal.connect(self.on_command_error)
         self.command_thread.start()

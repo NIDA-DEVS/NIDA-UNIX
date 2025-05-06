@@ -2,8 +2,13 @@ from langchain_core.messages import HumanMessage
 from core.command_graph import create_command_graph
 
 class CommandProcessor:
-    def __init__(self, model_name: str = "llama2"):
-        self.graph = create_command_graph(model_name)
+    def __init__(self, config: dict):
+        self.config = config
+        self.graph = create_command_graph(
+            provider=config["provider"],
+            model_name=config.get("model_name"),
+            api_key=config.get("api_key")
+        )
         self.context = {}
     
     def generate_command(self, prompt: str) -> str:

@@ -6,14 +6,14 @@ class CommandThread(QThread):
     result_ready = pyqtSignal(str, str)  
     error_signal = pyqtSignal(str)
 
-    def __init__(self, instruction, model):
+    def __init__(self, instruction: str, config: dict):
         super().__init__()
         self.instruction = instruction
-        self.model = model
+        self.config = config
 
     def run(self):
         try:
-            command = generate_command(self.instruction, self.model)
+            command = generate_command(self.instruction, self.config)
 
             if not command or "Failed to generate" in command:
                 self.error_signal.emit("Invalid input.")
