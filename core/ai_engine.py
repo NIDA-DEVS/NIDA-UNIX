@@ -11,24 +11,23 @@ class CommandProcessor:
         )
         self.context = {}
     
-    def generate_command(self, prompt: str) -> str:
+    def generate_command(self, prompt: str):
         config = {
             "messages": [HumanMessage(content=prompt)],  
             "command": "",
             "status": "",
             "context": self.context  
         }
-        
+        print(f"ai engine before CommandProcessor config: {config}")
         result = self.graph.invoke(config)
-        if result["status"] == "completed":
-            self.context = result.get("context", {})
-            return result["command"]
-        return f"echo 'Error: Invalid command'"
+        print(f"ai engine after CommandProcessor result: {result}")
+        self.context = result.get("context", {})
+        return result.get("command")
 
 _processor = None
 
-def generate_command(prompt: str, model: str = "llama2") -> str:
+def generate_command(prompt: str, config: dict):
     global _processor
     if _processor is None:
-        _processor = CommandProcessor(model)
+        _processor = CommandProcessor(config)
     return _processor.generate_command(prompt)
