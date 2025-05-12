@@ -1,12 +1,13 @@
 
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QLabel, QTextEdit, QPushButton, 
-                           QComboBox, QLineEdit, QStackedWidget, QHBoxLayout, QFrame)
+                           QComboBox, QLineEdit, QStackedWidget, QHBoxLayout, QFrame, QMessageBox)
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QTimer
 from PyQt5.QtGui import QPixmap, QFont
 from core import ollama_installer  
 from ui.main_window import MainWindow
 from core.api_client import LLMClient   
 from PyQt5.QtWidgets import QApplication 
+from core.db import APIKeyDB 
 
 class PullModelThread(QThread):
     log_signal = pyqtSignal(str)
@@ -35,6 +36,7 @@ class SetupWindow(QWidget):
         super().__init__()
         self.setWindowTitle("AI Linux Assistant - Setup")
         self.setGeometry(200, 200, 800, 600)
+        self.api_db = APIKeyDB() 
         self.setStyleSheet("""
             QWidget {
                 background-color: #2d2d2d;
@@ -114,7 +116,7 @@ class SetupWindow(QWidget):
         groq_frame = QFrame()
         groq_frame.setStyleSheet("padding: 10px;")
         groq_layout = QVBoxLayout()
-        groq_layout.addWidget(QLabel("Enter Groq API Key:"))
+        groq_layout.addWidget(QLabel("Groq API Key"))
         self.api_key_input = QLineEdit()
         self.api_key_input.setPlaceholderText("Enter your Groq API key here")
         self.api_key_input.setEchoMode(QLineEdit.Password)
@@ -162,7 +164,55 @@ class SetupWindow(QWidget):
     def on_provider_changed(self, provider):
         self.settings_stack.setCurrentIndex(0 if provider == "ollama" else 1)
         if provider == "groq":
+            existing_key = self.api_db.get_key("groq")
+            if existing_key:
+                if not hasattr(self, 'api_status_label'):
+                    self.api_status_label = QLabel()
+                    self.api_status_label.setStyleSheet("color: #4CAF50; margin-top: 10px;")
+                    groq_frame_layout = self.settings_stack.widget(1).layout()
+                    groq_frame_layout.addWidget(self.api_status_label)
+                    
+                    self.update_key_button = QPushButton("Update API Key")
+                    self.update_key_button.setStyleSheet("""
+                        QPushButton {
+                            background-color: #2196F3;
+                            color: white;
+                            border: none;
+                            border-radius: 4px;
+                            padding: 8px 16px;
+                        }
+                        QPushButton:hover {
+                            background-color: #1976D2;
+                        }
+                    """)
+                    self.update_key_button.clicked.connect(self.toggle_api_input)
+                    groq_frame_layout.addWidget(self.update_key_button)
+                
+                self.api_status_label.setText("✅ API Key already configured")
+                self.api_key_input.hide()
+                self.api_key_input.setText(existing_key)
+            else:
+                if hasattr(self, 'api_status_label'):
+                    self.api_status_label.hide()
+                    self.update_key_button.hide()
+                self.api_key_input.show()
+                self.api_key_input.clear()
+                self.api_key_input.setFocus()
+
+    def toggle_api_input(self):
+        """Toggle between showing existing key and allowing input of new key"""
+        if self.api_key_input.isHidden():
+            self.api_status_label.setText("Enter new API key:")
+            self.api_key_input.show()
+            self.api_key_input.clear()
             self.api_key_input.setFocus()
+            self.update_key_button.setText("Cancel Update")
+        else:
+            existing_key = self.api_db.get_key("groq")
+            self.api_status_label.setText("✅ API Key already configured")
+            self.api_key_input.hide()
+            self.api_key_input.setText(existing_key)
+            self.update_key_button.setText("Update API Key")
 
     def start_install(self):
         self.start_button.setDisabled(True)
@@ -176,6 +226,7 @@ class SetupWindow(QWidget):
                 lambda: self.launch_main_app(provider)
             )
             self.thread.start()
+            pass
         else:
             api_key = self.api_key_input.text()
             if not api_key:
@@ -190,6 +241,10 @@ class SetupWindow(QWidget):
                 self.append_log(f"❌ {message}")
                 self.start_button.setEnabled(True)
                 return
+            if self.api_db.save_key("groq", api_key):
+                self.append_log("✅ API key saved successfully")
+            else:
+                self.append_log("⚠️ Warning: Could not save API key to database")
                 
             self.append_log("✅ API key validated successfully")
             self.launch_main_app(provider)

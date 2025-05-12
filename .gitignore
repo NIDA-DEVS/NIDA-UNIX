@@ -3,3 +3,5 @@ venv/
 
 logs/*
 !logs/.gitkeep
+
+api_keys.db
