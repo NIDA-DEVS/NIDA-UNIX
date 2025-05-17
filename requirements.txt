@@ -9,5 +9,4 @@ chromadb
 tiktoken
 pydantic>=2.0.0
 langchain_groq
-pexpect
-sqlite3 
+pexpect 
