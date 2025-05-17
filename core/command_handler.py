@@ -8,5 +8,4 @@ def create_command_executor(command_sequence: CommandSequence) -> InteractiveCom
         else:
             raise ValueError(f"Invalid command sequence type: {type(command_sequence)}")
             
-    print(f"Creating command executor with sequence: {command_sequence}")
     return InteractiveCommandThread(command_sequence)

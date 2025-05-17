@@ -7,17 +7,20 @@ class SplashScreen(QWidget):
         super().__init__()
         self.on_close_callback = on_close_callback
         self.setWindowTitle("AI Linux Assistant")
-        self.setFixedSize(800, 600)
+        self.setFixedSize(800, 750)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         
+        self.setStyleSheet("background-color: black;")
+
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0) 
         
         self.splash_image = QLabel(self)
         self.splash_image.setMinimumSize(800, 600)  
-        
-        pixmap = QPixmap("splash.png")
+        self.splash_image.setStyleSheet("background-color: black;")
+
+        pixmap = QPixmap("splash_screen.png")
         scaled_pixmap = pixmap.scaled(
             800, 600,
             Qt.IgnoreAspectRatio,

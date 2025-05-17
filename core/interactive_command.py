@@ -34,7 +34,6 @@ class InteractiveCommandThread(QThread):
             
             all_outputs = []
             for cmd_entry in self.command_sequence.commands:
-                print(f"Executing command: {cmd_entry.command}")
                 self.output_signal.emit(f"\n🔄 Executing command {cmd_entry.order}/{self.command_sequence.total_commands}:")
                 self.output_signal.emit(f"$ {cmd_entry.command}\n")
                 

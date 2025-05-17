@@ -12,7 +12,7 @@ class MainWindow(QWidget):
     def __init__(self, config: dict):
         super().__init__()
         self.config = config
-        self.setWindowTitle("NIDA For your service")
+        self.setWindowTitle("NIDA - Neural Integrated Desktop Assistant")
         self.setGeometry(200, 200, 800, 600)
         self.setStyleSheet("""
             QWidget {
@@ -75,7 +75,7 @@ class MainWindow(QWidget):
         instruction_frame.setLayout(instruction_layout)
         self.layout.addWidget(instruction_frame)
 
-        self.submit_button = QPushButton("Generate & Execute")
+        self.submit_button = QPushButton("Generate and Execute")
         self.submit_button.clicked.connect(self.process_command)
         self.submit_button.setStyleSheet("""
             QPushButton {
