@@ -1,15 +1,41 @@
 import subprocess
 import shutil
 import json
+import platform
+
+def get_os_type():
+    system = platform.system().lower()
+    return system
 
 def is_ollama_installed():
     return shutil.which("ollama") is not None
 
 def install_ollama(log_callback):
-    log_callback("🔧 Installing Ollama...")
-    command = "curl -fsSL https://ollama.com/install.sh | sh"
-    subprocess.run(command, shell=True)
-    log_callback("✅ Ollama installed.")
+    system = get_os_type()
+
+    if system == "linux":
+        log_callback("🔧 Installing Ollama on Linux...")
+        command = "curl -fsSL https://ollama.com/install.sh | sh"
+        subprocess.run(command, shell=True)
+        log_callback("✅ Ollama installed successfully.")
+    elif system == "darwin":  
+        log_callback("ℹ️ Manual installation required for macOS")
+        log_callback("Please follow these steps:")
+        log_callback("1. Visit https://ollama.com/download/mac")
+        log_callback("2. Download and install the Ollama package")
+        log_callback("3. Once installed, click 'Continue' to proceed")
+        return "manual_mac"
+    elif system == "windows":
+        log_callback("ℹ️ Manual installation required for Windows")
+        log_callback("Please follow these steps:")
+        log_callback("1. Visit https://ollama.com/download/windows")
+        log_callback("2. Download and install the Ollama package")
+        log_callback("3. Once installed, click 'Continue' to proceed")
+        return "manual_windows"
+    else:
+        log_callback("❌ Unsupported operating system")
+        return "unsupported"
+
 
 def is_model_pulled(model_name):
     try:

@@ -8,6 +8,7 @@ from ui.main_window import MainWindow
 from core.api_client import LLMClient   
 from PyQt5.QtWidgets import QApplication 
 from core.db import APIKeyDB 
+import webbrowser
 
 class PullModelThread(QThread):
     log_signal = pyqtSignal(str)
@@ -220,13 +221,33 @@ class SetupWindow(QWidget):
 
         if provider == "ollama":
             model_name = self.model_selector.currentText()
-            self.thread = PullModelThread(model_name)
-            self.thread.log_signal.connect(self.append_log)
-            self.thread.finished_signal.connect(
-                lambda: self.launch_main_app(provider)
-            )
-            self.thread.start()
-            pass
+            
+            if not ollama_installer.is_ollama_installed():
+                system = ollama_installer.get_os_type()
+                
+                if system in ["darwin", "windows"]:
+                    url = "https://ollama.com/download/mac" if system == "darwin" else "https://ollama.com/download/windows"
+                    webbrowser.open(url)
+                    
+                    self.append_log(f"🌐 Opening Ollama download page for {system.capitalize()}...")
+                    self.append_log("⚠️ Please install Ollama from the opened webpage")
+                    self.append_log("ℹ️ After installation is complete, click 'Start Assistant' again")
+                    self.start_button.setEnabled(True)
+                    return
+                else:
+                    self.thread = PullModelThread(model_name)
+                    self.thread.log_signal.connect(self.append_log)
+                    self.thread.finished_signal.connect(
+                        lambda: self.launch_main_app(provider)
+                    )
+                    self.thread.start()
+            else:
+                self.thread = PullModelThread(model_name)
+                self.thread.log_signal.connect(self.append_log)
+                self.thread.finished_signal.connect(
+                    lambda: self.launch_main_app(provider)
+                )
+                self.thread.start()
         else:
             api_key = self.api_key_input.text()
             if not api_key:
@@ -248,6 +269,21 @@ class SetupWindow(QWidget):
                 
             self.append_log("✅ API key validated successfully")
             self.launch_main_app(provider)
+
+    def check_ollama_and_proceed(self):
+        """Check if Ollama is installed after manual installation"""
+        if ollama_installer.is_ollama_installed():
+            self.append_log("✅ Ollama installation detected!")
+            self.continue_button.hide()
+            model_name = self.model_selector.currentText()
+            self.thread = PullModelThread(model_name)
+            self.thread.log_signal.connect(self.append_log)
+            self.thread.finished_signal.connect(
+                lambda: self.launch_main_app("ollama")
+            )
+            self.thread.start()
+        else:
+            self.append_log("❌ Ollama installation not detected. Please complete the installation first.")
 
     def launch_main_app(self, provider):
         self.log_view.append("\nSetup complete! Launching Assistant...\n")
