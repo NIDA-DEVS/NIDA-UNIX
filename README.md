@@ -18,12 +18,12 @@ NIDA-UNIX is a powerful automation project designed specifically for developers.
 ![alt text](<System Architecture.jpg>)
 
 ## Upcoming Features 
-1. Enable voice-based input functionality using predefined model (17 May)
-2. Integrate stable fine-tuned model into the application for response generation (7 June)
-3. Enhance System Architecture with Validation Layers (24 May)
-4. Develop custom Indian Accent Speech Recognition Model (10 June)
-5. Provide Executable Application for Unix-Based Systems (21 May)
-6. Integrate external services (31 May)
+1. Enable voice-based input functionality using predefined model (21 May)
+2. Integrate stable fine-tuned model into the application for response generation (31 May)
+3. Enhance System Architecture with Validation Layers (27 May)
+4. Develop custom Indian Accent Speech Recognition Model (31 May)
+5. Provide Executable Application for Unix-Based Systems (22 May)
+6. Integrate external services (28 May)
 
 
 ## Prerequisites
@@ -44,16 +44,9 @@ cd NIDA-UNIX
 ```
 
 2. Create a virtual environment and activate it
-
-* for Linux or Mac :
 ```
 python -m venv venv
 source venv/bin/activate
-```
-* for Windows :
-```
-python -m venv venv
-.\venv\Scripts\Activate.ps1 
 ```
 
 3. Install Dependencies
@@ -83,5 +76,8 @@ python main.py
 * Login or signup on groq website: <br>
 https://console.groq.com/keys
 * After signingup click on create api key and give it some name 
-* copy api key and paste on Groq api key section while using it, look in image for reference :
-![alt text](<groq api interface image.png>)
+* copy api key and paste on Groq api key section while using it, look in image for reference : <br>
+![alt text](<groq api interface image.png>) <br>
+
+<hr>
+<b>Note : </b> Currently there are limited features for Windows, we are working on windows features and will update soon.  
