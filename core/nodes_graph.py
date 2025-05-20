@@ -1,7 +1,8 @@
 from typing import TypedDict, List, Dict
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
+from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_ollama import OllamaLLM
 from langgraph.graph import START, END
+from langchain_core.output_parsers import StrOutputParser
 
 class ChatState(TypedDict):
     messages: List[BaseMessage]
@@ -9,28 +10,39 @@ class ChatState(TypedDict):
     status: str
     context: Dict  
 
+def get_response_content(response) -> str:
+    """Extract content from different types of LLM responses"""
+    if hasattr(response, 'content'):
+        return response.content
+    return str(response)
+
 def generate_command(state: ChatState, llm: OllamaLLM):
-    """Generate Linux command from user input"""
+    """Generate Linux command from user input using LangChain Output Parser"""
     messages = state["messages"]
     context = state.get("context", {})
-    
+
     system_prompt = """You are a helpful Linux assistant. Convert requests into bash commands.
+
     Context of recent actions: {context}
     Request: {user_input}
-    Generate only the command, no explanations."""
-    
+    Generate only the command without any leading or ending '`'. Do not paas any '$' pr anything other than the command, no explanations."""
+
     prompt = system_prompt.format(
         context=str(context),
         user_input=messages[-1].content
     )
-    
+
+    parser = StrOutputParser()
     response = llm.invoke(prompt)
+    cleaned_response = get_response_content(response)
+    command = parser.parse(cleaned_response)
+
     return {
-        "command": response.strip(),
+        "command": command.strip(),
         "context": {
             **context,
-            "last_command": response.strip(),
-            "last_file": response.strip().split()[-1] if "touch" in response or "echo" in response else context.get("last_file")
+            "last_command": command.strip(),
+            "last_file": command.strip().split()[-1] if "touch" in command or "echo" in command else context.get("last_file")
         }
     }
 
