@@ -5,8 +5,9 @@ from langgraph.graph import START, END
 from langchain_core.output_parsers import JsonOutputParser
 from core.multiple_command_model import CommandSequence
 import os
-
-os.environ["LANGCHAIN_API_KEY"] = "api-key"
+from dotenv import load_dotenv
+load_dotenv()
+os.environ["LANGCHAIN_API_KEY"] = os.getenv('LANGCHAIN_API_KEY')
 os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
 os.environ["LANGCHAIN_PROJECT"] = "AI_LINUX"
 os.environ["LANGSMITH_TRACING"] = "true"

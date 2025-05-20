@@ -5,3 +5,5 @@ logs/*
 !logs/.gitkeep
 
 api_keys.db
+.env
+.venv
