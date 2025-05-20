@@ -18,24 +18,22 @@ def install_ollama(log_callback):
         command = "curl -fsSL https://ollama.com/install.sh | sh"
         subprocess.run(command, shell=True)
         log_callback("✅ Ollama installed successfully.")
-    elif system == "darwin":  
-        log_callback("ℹ️ Manual installation required for macOS")
-        log_callback("Please follow these steps:")
-        log_callback("1. Visit https://ollama.com/download/mac")
-        log_callback("2. Download and install the Ollama package")
-        log_callback("3. Once installed, click 'Continue' to proceed")
-        return "manual_mac"
-    elif system == "windows":
-        log_callback("ℹ️ Manual installation required for Windows")
-        log_callback("Please follow these steps:")
-        log_callback("1. Visit https://ollama.com/download/windows")
-        log_callback("2. Download and install the Ollama package")
-        log_callback("3. Once installed, click 'Continue' to proceed")
-        return "manual_windows"
+        return "success"
+    elif system in ["darwin", "windows"]:
+        os_name = "macOS" if system == "darwin" else "Windows"
+        log_callback(f"⚠️ Manual installation required for {os_name}")
+        log_callback("\nPlease follow these steps:")
+        log_callback(f"1. A download page for {os_name} will open in your browser")
+        log_callback("2. Download and run the Ollama installer")
+        log_callback("3. Wait for the installation to complete")
+        log_callback("4. Start the Ollama application")
+        log_callback("\nOnce Ollama is installed and running:")
+        log_callback("5. Return to this window")
+        log_callback("6. Click 'Start Assistant' to proceed")
+        return "manual"
     else:
         log_callback("❌ Unsupported operating system")
         return "unsupported"
-
 
 def is_model_pulled(model_name):
     try:

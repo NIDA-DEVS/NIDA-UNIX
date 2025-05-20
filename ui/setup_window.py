@@ -229,25 +229,46 @@ class SetupWindow(QWidget):
                     url = "https://ollama.com/download/mac" if system == "darwin" else "https://ollama.com/download/windows"
                     webbrowser.open(url)
                     
-                    self.append_log(f"🌐 Opening Ollama download page for {system.capitalize()}...")
-                    self.append_log("⚠️ Please install Ollama from the opened webpage")
-                    self.append_log("ℹ️ After installation is complete, click 'Start Assistant' again")
+                    self.log_view.clear()
+                    self.append_log("🔄 Ollama Installation Required")
+                    self.append_log("-" * 40)
+                    
+                    os_name = "macOS" if system == "darwin" else "Windows"
+                    self.append_log(f"\n📥 Installing Ollama on {os_name}:")
+                    self.append_log("\nStep 1: Install Ollama")
+                    self.append_log("• Download page has been opened in your browser")
+                    self.append_log("• Download and run the Ollama installer")
+                    self.append_log("• Complete the installation process")
+                    self.append_log("• Start the Ollama application")
+                    
+                    self.append_log("\nStep 2: Return to Setup")
+                    self.append_log("• Once Ollama is installed and running")
+                    self.append_log("• Click 'Start Assistant' again to proceed")
+                    self.append_log("\n⚠️ Make sure Ollama is running before continuing!")
+                    
                     self.start_button.setEnabled(True)
                     return
                 else:
-                    self.thread = PullModelThread(model_name)
-                    self.thread.log_signal.connect(self.append_log)
-                    self.thread.finished_signal.connect(
-                        lambda: self.launch_main_app(provider)
-                    )
-                    self.thread.start()
-            else:
-                self.thread = PullModelThread(model_name)
-                self.thread.log_signal.connect(self.append_log)
-                self.thread.finished_signal.connect(
-                    lambda: self.launch_main_app(provider)
-                )
-                self.thread.start()
+                    result = ollama_installer.install_ollama(self.append_log)
+                    if result != "success":
+                        self.append_log("❌ Installation failed")
+                        self.start_button.setEnabled(True)
+                        return
+            
+            if not ollama_installer.is_ollama_installed():
+                self.append_log("\n❌ Ollama is not detected!")
+                self.append_log("Please make sure Ollama is installed and running")
+                self.append_log("Then click 'Start Assistant' again")
+                self.start_button.setEnabled(True)
+                return
+                
+            self.append_log("\n✅ Ollama detected! Preparing to download model...")
+            self.thread = PullModelThread(model_name)
+            self.thread.log_signal.connect(self.append_log)
+            self.thread.finished_signal.connect(
+                lambda: self.launch_main_app(provider)
+            )
+            self.thread.start()
         else:
             api_key = self.api_key_input.text()
             if not api_key:
