@@ -132,6 +132,7 @@ class MainWindow(QWidget):
         else:
             self.log("🚫 Operation cancelled.")
             self.output_box.setText("Operation cancelled.")
+            self.submit_button.setEnabled(True) 
 
     def execute_command(self, instruction, command):
         try:
@@ -180,6 +181,11 @@ class MainWindow(QWidget):
 
     def handle_command_finished(self, instruction, command, output):
         """Handle command completion"""
+        if hasattr(self, 'command_executor'):
+            self.command_executor.output_signal.disconnect()
+            self.command_executor.finished_signal.disconnect()
+            self.command_executor.prompt_signal.disconnect()
+            
         self.log("✅ Command executed successfully")
         
         if output and output.strip():
@@ -193,16 +199,22 @@ class MainWindow(QWidget):
             log_action(instruction, command, "No output")
         
         self.overlay.hide()
+        self.submit_button.setEnabled(True)
 
     def on_command_error(self, error_message):
         self.overlay.hide()  
         self.log(f"❌ Error: {error_message}")
         self.output_box.setText(error_message or "Invalid input.")
-
+        self.submit_button.setEnabled(True)
+    
     def process_command(self):
+        self.output_box.clear()
+        self.submit_button.setEnabled(False) 
+    
         instruction = self.input_box.toPlainText().strip()
         if not instruction:
             self.output_box.setText("Please enter an instruction.")
+            self.submit_button.setEnabled(True)           
             return
 
         self.overlay.show()  
