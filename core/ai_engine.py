@@ -18,9 +18,7 @@ class CommandProcessor:
             "status": "",
             "context": self.context  
         }
-        print(f"ai engine before CommandProcessor config: {config}")
         result = self.graph.invoke(config)
-        print(f"ai engine after CommandProcessor result: {result}")
         self.context = result.get("context", {})
         return result.get("command")
 

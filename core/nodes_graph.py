@@ -27,7 +27,6 @@ def generate_command(state: ChatState, llm: OllamaLLM):
     """Generate Linux commands in JSON format"""
     messages = state["messages"]
     context = state.get("context", {})
-    print(f"Nodes graph entry: {context}")  
 
     command_history = context.get("command_history", [])
     if "last_sequence" in context:
@@ -91,12 +90,9 @@ def generate_command(state: ChatState, llm: OllamaLLM):
 
     parser = JsonOutputParser(pydantic_object=CommandSequence)
     response = llm.invoke(prompt)
-    print(f"Nodes graph LLM response: {response}")  
     cleaned_response = get_response_content(response)
-    print(f"Nodes graph Cleaned response: {cleaned_response}") 
     try:
         command_sequence = parser.parse(cleaned_response)
-        print(f"Parsed command sequence: {command_sequence}")  
         return {
             "command": command_sequence,
             "context": {
@@ -107,9 +103,6 @@ def generate_command(state: ChatState, llm: OllamaLLM):
             }
         }
     except Exception as e:
-        print(f"Parsing error: {e}")  
-        print(f"Raw response: {cleaned_response}")
-
         return {
             "command": "",
             "context": {
@@ -121,7 +114,6 @@ def generate_command(state: ChatState, llm: OllamaLLM):
 def validate_command(state: ChatState):
     """Check if command sequence is valid"""
     command = state.get("command")
-    print(f"Validating command: {command}")  
     
     if not command or not hasattr(command, "commands"):
         return "invalid"
@@ -140,7 +132,6 @@ def validate_command(state: ChatState):
 
 def process_command(state: ChatState):
     """Process the valid command"""
-    print(f"nodes graph Processing command: {state['command']}")  
     return {
         "command": state["command"],
         "status": "completed",

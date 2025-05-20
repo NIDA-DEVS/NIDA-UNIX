@@ -34,7 +34,7 @@ class PullModelThread(QThread):
 class SetupWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("AI Linux Assistant - Setup")
+        self.setWindowTitle("NIDA - Neural Integrated Desktop Assistant")
         self.setGeometry(200, 200, 800, 600)
         self.api_db = APIKeyDB() 
         self.setStyleSheet("""
@@ -86,7 +86,7 @@ class SetupWindow(QWidget):
         self.layout.setContentsMargins(20, 20, 20, 20)
         self.layout.setSpacing(15)
 
-        header = QLabel("AI Linux Assistant Setup")
+        header = QLabel("NIDA Setup")
         header.setStyleSheet("font-size: 20px; font-weight: bold; color: #4CAF50;")
         header.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(header)
