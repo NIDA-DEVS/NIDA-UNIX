@@ -1,10 +1,11 @@
 # Neural Integrated Desktop Assistant (NIDA-UNIX)
 
 ## Introduction
-NIDA-UNIX is a powerful automation project designed specifically for developers. It provides seamless access to a full desktop environment and allows the execution of system commands directly, simplifying complex workflows and enhancing productivity. Developer just need to tell NIDA-UNIX about what to do and it can automatically perform task.
+NIDA-UNIX is a smart desktop assistant built for developers. Just tell it what you want to do in plain English, and it takes care of the rest—automatically running the right system commands for you. It even handles things like sudo access and follow-up prompts. With NIDA-UNIX, you get a full desktop environment that makes complex tasks easier and boosts your productivity.
 
 ## Features 
 1. Automated Command Execution: Executes system commands without the need to type them every time.
+2. Describe any task in plain English, and NIDA-UNIX will automatically generate and execute the required system commands step by step.
 2. Sudo(Admin) Access Handling: It can run commands that need special permissions (like using sudo) and handle any follow-up prompts.
 3. Database Creation – It can create database automatically using our model. Also can automate database-related tasks as needed.
 4. Activity Logging – Maintains a comprehensive log history of executed actions. It saves a history of everything it does, so you can check what happened later.
