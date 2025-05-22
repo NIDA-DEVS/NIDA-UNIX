@@ -6,10 +6,10 @@ NIDA-UNIX is a smart desktop assistant built for developers. Just tell it what y
 ## Features 
 1. Automated Command Execution: Executes system commands without the need to type them every time.
 2. Describe any task in plain English, and NIDA-UNIX will automatically generate and execute the required system commands step by step.
-2. Sudo(Admin) Access Handling: It can run commands that need special permissions (like using sudo) and handle any follow-up prompts.
-3. Database Creation – It can create database automatically using our model. Also can automate database-related tasks as needed.
-4. Activity Logging – Maintains a comprehensive log history of executed actions. It saves a history of everything it does, so you can check what happened later.
-5. AI Integration – Works with powerful AI tools like GROQ and OLLAMA (supports LLaMA2, Code LLaMA, Mistral, and Gemma-2B) to help you with smart automation.
+3. Sudo(Admin) Access Handling: It can run commands that need special permissions (like using sudo) and handle any follow-up prompts.
+4. Database Creation – It can create database automatically using our model. Also can automate database-related tasks as needed.
+5. Activity Logging – Maintains a comprehensive log history of executed actions. It saves a history of everything it does, so you can check what happened later.
+6. AI Integration – Works with powerful AI tools like GROQ and OLLAMA (supports LLaMA2, Code LLaMA, Mistral, and Gemma-2B) to help you with smart automation.
 
 
 ## System Architecture
@@ -54,7 +54,7 @@ pip install -r requirements.txt
 4. Get your LangSmith api key here 
 https://docs.smith.langchain.com/administration/how_to_guides/organization_management/create_account_api_key
 
-4. Create a <b>.env</b> File
+5. Create a <b>.env</b> File
 In the root directory of the project and add your LangChain API key:
 ``` 
 LANGCHAIN_API_KEY = "api-key"
