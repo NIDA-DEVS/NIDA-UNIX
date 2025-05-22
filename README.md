@@ -12,9 +12,6 @@ NIDA-UNIX is a smart desktop assistant built for developers. Just tell it what y
 5. AI Integration – Works with powerful AI tools like GROQ and OLLAMA (supports LLaMA2, Code LLaMA, Mistral, and Gemma-2B) to help you with smart automation.
 
 
-## Demo Video
-
-
 ## System Architecture
 ![alt text](<System Architecture.jpg>)
 
