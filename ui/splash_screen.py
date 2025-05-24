@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPixmap
+import os
+import sys
 
 class SplashScreen(QWidget):
     def __init__(self, on_close_callback):
@@ -20,7 +22,13 @@ class SplashScreen(QWidget):
         self.splash_image.setMinimumSize(800, 600)  
         self.splash_image.setStyleSheet("background-color: black;")
 
-        pixmap = QPixmap("splash_screen.png")
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.dirname(os.path.dirname(__file__))
+        
+        splash_image_path = os.path.join(base_path, 'splash_screen.png')
+        pixmap = QPixmap(splash_image_path)
         scaled_pixmap = pixmap.scaled(
             800, 600,
             Qt.IgnoreAspectRatio,
