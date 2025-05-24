@@ -1,57 +1,30 @@
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QLabel, QTextEdit, QPushButton, 
-                            QMessageBox, QInputDialog, QLineEdit, QFrame)
+                            QMessageBox, QInputDialog, QLineEdit, QFrame, QHBoxLayout)
 from core.logger import log_action
 from core.command_thread import CommandThread
 from core.overlay_widget import OverlayWidget
 from core.command_handler import create_command_executor
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QTimer
 from PyQt5.QtWidgets import QApplication 
+from ui.speech_button import SpeechButton
 
 
 class MainWindow(QWidget):
     def __init__(self, config: dict):
         super().__init__()
         self.config = config
+        
+        self.input_box = QTextEdit()
+        self.submit_button = QPushButton("Generate and Execute")
+        self.log_view = QTextEdit() 
+        self.output_box = QTextEdit()
+        self.output_box.setReadOnly(True)
+        
         self.setWindowTitle("NIDA - Neural Integrated Desktop Assistant")
-        self.setGeometry(200, 200, 800, 600)
+        self.setGeometry(100, 100, 1000, 800)
         self.setStyleSheet("""
             QWidget {
                 background-color: #2d2d2d;
-                color: #ffffff;
-            }
-            QLabel {
-                color: #ffffff;
-                font-size: 14px;
-            }
-            QTextEdit, QLineEdit {
-                background-color: #3d3d3d;
-                color: #ffffff;
-                border: 1px solid #555;
-                border-radius: 4px;
-                padding: 8px;
-                font-family: 'Consolas', monospace;
-            }
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                padding: 10px;
-                font-size: 14px;
-                font-weight: bold;
-                min-width: 150px;
-            }
-            QPushButton:hover {
-                background-color: #45a049;
-            }
-            QFrame {
-                border: 1px solid #444;
-                border-radius: 4px;
-            }
-            QMessageBox {
-                background-color: #2d2d2d;
-            }
-            QMessageBox QLabel {
                 color: #ffffff;
             }
         """)
@@ -65,51 +38,123 @@ class MainWindow(QWidget):
         header.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(header)
 
-        instruction_frame = QFrame()
-        instruction_frame.setStyleSheet("padding: 10px;")
-        instruction_layout = QVBoxLayout()
-        instruction_layout.addWidget(QLabel("Enter instruction:"))
-        self.input_box = QTextEdit()
-        self.input_box.setPlaceholderText("Type your Linux command instruction here...")
-        instruction_layout.addWidget(self.input_box)
-        instruction_frame.setLayout(instruction_layout)
-        self.layout.addWidget(instruction_frame)
+        input_frame = QFrame()
+        input_frame.setStyleSheet("""
+            QFrame {
+                background-color: #363636;
+                border-radius: 8px;
+                padding: 15px;
+            }
+        """)
+        input_layout = QVBoxLayout(input_frame)
 
-        self.submit_button = QPushButton("Generate and Execute")
+        input_row = QHBoxLayout()
+        
+        manual_input_layout = QVBoxLayout()
+        self.input_box.setPlaceholderText("Type your Linux command instruction here...")
+        self.input_box.setStyleSheet("""
+            QTextEdit {
+                background-color: #2d2d2d;
+                border: 1px solid #444;
+                border-radius: 4px;
+                padding: 8px;
+                color: white;
+                font-size: 14px;
+                min-height: 80px;
+            }
+        """)
         self.submit_button.clicked.connect(self.process_command)
         self.submit_button.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
+                border: none;
+                border-radius: 4px;
+                color: white;
+                padding: 8px 16px;
+                font-size: 14px;
                 font-weight: bold;
-                padding: 12px;
             }
             QPushButton:hover {
                 background-color: #45a049;
             }
+            QPushButton:disabled {
+                background-color: #666;
+            }
         """)
-        self.layout.addWidget(self.submit_button, 0, Qt.AlignCenter)
+        manual_input_layout.addWidget(self.input_box)
+        manual_input_layout.addWidget(self.submit_button)
+        input_row.addLayout(manual_input_layout, stretch=2)
 
-        output_frame = QFrame()
-        output_frame.setStyleSheet("padding: 10px;")
-        output_layout = QVBoxLayout()
-        output_layout.addWidget(QLabel("Command Output:"))
-        self.output_box = QTextEdit()
-        self.output_box.setReadOnly(True)
-        output_layout.addWidget(self.output_box)
-        output_frame.setLayout(output_layout)
-        self.layout.addWidget(output_frame, 1)
+        line = QFrame()
+        line.setFrameShape(QFrame.VLine)
+        line.setStyleSheet("background-color: #444;")
+        input_row.addWidget(line)
+        
+        voice_input_layout = QVBoxLayout()
+        voice_label = QLabel("Or use voice input")
+        voice_label.setStyleSheet("color: #aaa; font-size: 12px; margin-bottom: 5px;")
+        voice_label.setAlignment(Qt.AlignCenter)
+        self.speech_button = SpeechButton()
+        self.speech_button.speech_result.connect(self.handle_speech_result)
+        self.speech_button.listening_started.connect(self.on_listening_started)
+        self.speech_button.listening_ended.connect(self.on_listening_ended)
+        voice_input_layout.addWidget(voice_label)
+        voice_input_layout.addWidget(self.speech_button, 0, Qt.AlignCenter)
+        input_row.addLayout(voice_input_layout, stretch=1)
 
+        input_layout.addLayout(input_row)
+        
+        self.layout.addWidget(input_frame)
+        
         log_frame = QFrame()
-        log_frame.setStyleSheet("padding: 10px;")
+        log_frame.setStyleSheet("""
+            QFrame {
+                padding: 10px;
+                margin-top: 20px;
+            }
+        """)
         log_layout = QVBoxLayout()
-        log_layout.addWidget(QLabel("Logs:"))
-        self.log_view = QTextEdit()
+        log_label = QLabel("Complete Logs:")
+        log_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #4CAF50;")
+        log_layout.addWidget(log_label)
+        
+        self.log_view.setStyleSheet("""
+            QTextEdit {
+                background-color: #1e1e1e;
+                border: 1px solid #333;
+                border-radius: 4px;
+                padding: 10px;
+                font-family: 'Consolas', monospace;
+                font-size: 13px;
+            }
+        """)
         self.log_view.setReadOnly(True)
         log_layout.addWidget(self.log_view)
         log_frame.setLayout(log_layout)
         self.layout.addWidget(log_frame, 1)
 
-        self.overlay = OverlayWidget()
+        self.overlay = QFrame(self)
+        self.overlay.setStyleSheet("""
+            QFrame {
+                background-color: rgba(0, 0, 0, 180);
+                border-radius: 4px;
+            }
+        """)
+        self.overlay.hide()
+        
+        self.loading_label = QLabel("Processing...", self.overlay)
+        self.loading_label.setStyleSheet("""
+            QLabel {
+                color: white;
+                font-size: 16px;
+                background-color: transparent;
+            }
+        """)
+        self.loading_label.setAlignment(Qt.AlignCenter)
+        
+        overlay_layout = QVBoxLayout(self.overlay)
+        overlay_layout.addWidget(self.loading_label)
+
         self.setLayout(self.layout)
 
     def log(self, message):
@@ -228,3 +273,21 @@ class MainWindow(QWidget):
         self.command_thread.result_ready.connect(self.on_command_done)
         self.command_thread.error_signal.connect(self.on_command_error)
         self.command_thread.start()
+
+    def handle_speech_result(self, text):
+        self.input_box.setText(text)
+        self.log("🎤 Speech recognized: " + text)
+        self.process_command()
+
+    def on_listening_started(self):
+        self.log("🎤 Listening...")
+        self.input_box.setPlaceholderText("Listening...")
+        self.submit_button.setEnabled(False)
+
+    def on_listening_ended(self):
+        self.input_box.setPlaceholderText("Type your Linux command instruction here...")
+        self.submit_button.setEnabled(True)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.overlay.resize(self.size())
